@@ -15,6 +15,7 @@ public class GameModel extends Observable implements JsonSerializable {
     GameStage stage;
     Player[] players = new Player[2];
     int elapsed;
+    int id = -1;
     
     static final int START_TIME = 30 * 10; // Number of ticks for start
     static final int SCORE_TIME = 30 * 5;
@@ -102,10 +103,18 @@ public class GameModel extends Observable implements JsonSerializable {
 		progress = secondsInCountdown - ((double)elapsed / (double)START_TIME) * secondsInCountdown;
 		break;
 	    default:
-		System.out.println("Bad state in getCountdown()");
+		System.out.println("Bad state in getCountdown(): " + state.toString());
 		throw new RuntimeException();
 	}
 	return (int)progress;
+    }
+    
+    public void setId(int n) {
+	id = n;
+    }
+    
+    public int getId() {
+	return id;
     }
 
     @Override

@@ -25,7 +25,7 @@ import org.json.simple.JSONValue;
 public class ServerWebSocket implements Observer {
     
     private Session session;
-    int game;
+    Player player;
     GameModelStorage storage;
     
     public ServerWebSocket(GameModelStorage storage) {
@@ -40,6 +40,9 @@ public class ServerWebSocket implements Observer {
     @OnWebSocketClose
     public void handleClose(int code, String reason) {
 	System.out.println("Connection closed with statusCode=" + code + ", reason=" + reason);
+	
+	// Unregister observer
+	player.getGame().deleteObserver(this);
     }
     
     @OnWebSocketMessage
@@ -50,13 +53,14 @@ public class ServerWebSocket implements Observer {
 	String messageType = (String)jsonMessage.get("messageType");
 	switch(messageType) {
 	    case "JOIN_GAME":
-		game = storage.joinGame(new Player());
-		System.out.println("Joined game " + game);
-		storage.getGame(game).addObserver(this);
-		sendStateUpdate(session, storage.getGame(game).getState());
+		player = storage.joinGame();
+		System.out.println("Joined game " + player.getGame().getId());
+		player.getGame().addObserver(this);
+		sendStateUpdate(session, player.getGame().getState());
 		break;
 	    case "PLAYER_INPUT":
-		System.out.println("Got player input!");
+		System.out.println("Got player input! " + message);
+		handleInput((JSONObject)jsonMessage.get("data"));
 		break;
 	}
     }
@@ -74,18 +78,18 @@ public class ServerWebSocket implements Observer {
 		    ServerMessageTypes type = (ServerMessageTypes)arg;
 		    switch (type) {
 			case CHANGE_STATE:
-			    sendStateUpdate(session, storage.getGame(game).getState());
+			    sendStateUpdate(session, player.getGame().getState());
 			    break;
 			case COUNT_DOWN:
-			    sendCountdownUpdate(session, storage.getGame(game).getCountdown());
+			    sendCountdownUpdate(session, player.getGame().getCountdown());
 			    break;
 			case GAME_UPDATE:
-			    sendGameUpdate(session, storage.getGame(game));
+			    sendGameUpdate(session, player.getGame());
 			    break;
 		    }
 		} else {
 		    System.out.println("No server message type specified");
-		    session.getRemote().sendString(this.storage.getGame(game).serialize().toJSONString());
+		    session.getRemote().sendString(player.getGame().serialize().toJSONString());
 		}
 	    } else {
 		
@@ -116,5 +120,10 @@ public class ServerWebSocket implements Observer {
 	data.put("messageType", ServerMessageTypes.COUNT_DOWN.toString());
 	data.put("data", countdownTime);
 	session.getRemote().sendString(data.toJSONString());
+    }
+    
+    void handleInput(JSONObject data) {
+	long y = (long)data.get("mouseY");
+	player.setPaddlePosition(y);
     }
 }

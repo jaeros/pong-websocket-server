@@ -30,13 +30,14 @@ public class GameModelStorage extends Observable implements Runnable, JsonSerial
 	executorService.scheduleAtFixedRate(this, 33, 33, TimeUnit.MILLISECONDS);
     }
 
-    public synchronized int joinGame(Player p) {
+    public synchronized Player joinGame() {
 	int emptyIndex = -1;
 	for (int i = 0; i < games.length; i++) {
 	    if (games[i] != null) {
 		if (games[i].canJoin()) {
+		    Player p = new Player(games[i]);
 		    games[i].join(p);
-		    return i;
+		    return p;
 		}
 	    } else if (emptyIndex == -1) {
 		emptyIndex = i;
@@ -44,15 +45,19 @@ public class GameModelStorage extends Observable implements Runnable, JsonSerial
 	}
 	if (emptyIndex != -1) {
 	    games[emptyIndex] = new GameModel();
-	    return emptyIndex;
+	    Player p = new Player(games[emptyIndex]);
+	    games[emptyIndex].setId(emptyIndex);
+	    games[emptyIndex].join(p);
+	    return p;
 	}
-	return -1;
+	return null;
     }
     
     public int addGame(GameModel game) throws OutOfMemoryError {
 	for (int i = 0; i < games.length; i++) {
 	    if (games[i] == null) {
 		games[i] = game;
+		game.setId(i);
 		return i;
 	    }
 	}

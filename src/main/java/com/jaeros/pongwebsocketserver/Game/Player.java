@@ -7,15 +7,26 @@ package com.jaeros.pongwebsocketserver.Game;
  */
 public class Player {
     
-    public Player() {
-	this("");
+    GameModel game;
+    String name;
+    
+    public Player(GameModel game) {
+	this(game, "");
     }
     
-    public Player(String name) {
+    public Player(GameModel game, String name) {
+	this.game = game;
 	this.name = name;
 	paddlePosition = 0;
     }
     
-    String name;
+    public void setPaddlePosition(double y) {
+	paddlePosition = y;
+    }
+    
+    public GameModel getGame() {
+	return game;
+    }
+    
     double paddlePosition;
 }
