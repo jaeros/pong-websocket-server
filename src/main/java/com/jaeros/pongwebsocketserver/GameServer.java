@@ -2,13 +2,12 @@
 package com.jaeros.pongwebsocketserver;
 
 import com.jaeros.pongwebsocketserver.Game.GameModel;
+import com.jaeros.pongwebsocketserver.GameModelStorage;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.server.WebSocketHandler;
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest;
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeResponse;
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator;
-import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 
 
@@ -28,9 +27,6 @@ public class GameServer {
 	    storage.addGame(new GameModel());
 	    
 	    Server server = new Server(8000);
-//	    ServletContextHandler ctx = new ServletContextHandler();
-//	    ctx.setContextPath("/");
-//	    ctx.addServlet(GameSocketServlet.class, "/games");
 	    server.setHandler(new GameSocketHandler());
 	    
 	    server.start();

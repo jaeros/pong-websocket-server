@@ -35,7 +35,8 @@ public class GameModelStorage extends Observable implements Runnable, JsonSerial
 	for (int i = 0; i < games.length; i++) {
 	    if (games[i] != null) {
 		if (games[i].canJoin()) {
-		    return games[i].join(p);
+		    games[i].join(p);
+		    return i;
 		}
 	    } else if (emptyIndex == -1) {
 		emptyIndex = i;
