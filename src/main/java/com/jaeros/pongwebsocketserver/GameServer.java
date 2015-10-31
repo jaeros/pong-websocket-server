@@ -2,7 +2,6 @@
 package com.jaeros.pongwebsocketserver;
 
 import com.jaeros.pongwebsocketserver.Game.GameModel;
-import com.jaeros.pongwebsocketserver.GameModelStorage;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.websocket.server.WebSocketHandler;
 import org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest;
@@ -53,7 +52,6 @@ public class GameServer {
 	
 	@Override
 	public Object createWebSocket(ServletUpgradeRequest req, ServletUpgradeResponse res) {
-//	    System.out.println("Creating socket for: " + req.getRequestPath());
 	    // Create new web socket and pass it the game storage object
 	    return new ServerWebSocket(storage);
 	}

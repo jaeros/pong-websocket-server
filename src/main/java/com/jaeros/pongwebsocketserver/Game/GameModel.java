@@ -19,14 +19,16 @@ public class GameModel extends Observable implements JsonSerializable {
     
     static final int START_TIME = 30 * 10; // Number of ticks for start
     static final int SCORE_TIME = 30 * 5;
+    static final int MAX_SCORE = 10;
 
     public GameModel() {
-	stage = new GameStage(400, 400);
+	stage = new GameStage(400, 400, this);
 	state = GameState.NEW_GAME;
     }
     
     public boolean canJoin() {
-	return state == GameState.NEW_GAME || state == GameState.WAIT_P2;
+	return state == GameState.NEW_GAME || state == GameState.WAIT_P2 && 
+		(players[0] == null || players[1] == null);
     }
     
     private void setState(GameState state) {
@@ -37,6 +39,10 @@ public class GameModel extends Observable implements JsonSerializable {
 	notifyObservers(ServerMessageTypes.CHANGE_STATE);
     }
     
+    public GameStage getStage() {
+	return stage;
+    }
+
     public GameState getState() {
 	return state;
     }
@@ -75,9 +81,7 @@ public class GameModel extends Observable implements JsonSerializable {
 		}
 		break;
 	    case PLAYING:
-		stage.tick();
-		setChanged();
-		notifyObservers(ServerMessageTypes.GAME_UPDATE);
+		updateGame();
 		break;
 	    case SHOW_SCORE:
 		if (elapsed > SCORE_TIME) setState(GameState.PLAYING);
@@ -89,10 +93,24 @@ public class GameModel extends Observable implements JsonSerializable {
 	}
     }
     
+    private void updateGame() {
+	stage.tick();
+	setChanged();
+	notifyObservers(ServerMessageTypes.GAME_UPDATE);
+    }
+    
+    void playerScored(int pid) {
+	players[pid].addPoint();
+	if (players[pid].getScore() >= MAX_SCORE) 
+	    setState(GameState.GAME_OVER);
+	else
+	    setState(GameState.SHOW_SCORE);
+    }
+    
     public int getCountdown() {
 	
 	int secondsInCountdown;
-	double progress;
+	double progress = 0;
 	switch(state) {
 	    case STARTING:
 		secondsInCountdown = START_TIME / 30;
@@ -104,7 +122,7 @@ public class GameModel extends Observable implements JsonSerializable {
 		break;
 	    default:
 		System.out.println("Bad state in getCountdown(): " + state.toString());
-		throw new RuntimeException();
+		break;
 	}
 	return (int)progress;
     }
@@ -116,6 +134,10 @@ public class GameModel extends Observable implements JsonSerializable {
     public int getId() {
 	return id;
     }
+    
+    public Player[] getPlayers() {
+	return players;
+    }
 
     @Override
     public JSONObject serialize() {
@@ -123,13 +145,21 @@ public class GameModel extends Observable implements JsonSerializable {
 	JSONArray playersJson = new JSONArray();
 	for (int i = 0; i < 2; i++) {
 	    if (players[i] != null) {
-		JSONObject paddlePosition = new JSONObject();
-		paddlePosition.put("x", i * 400);
-		paddlePosition.put("y", players[i].paddlePosition);
-		playersJson.add(paddlePosition);
+		JSONObject playerData = new JSONObject();
+		playerData.put("x", i == 0 ? 0 : 380);
+		playerData.put("y", players[i].getPaddlePosition());
+		playerData.put("score", players[i].getScore());
+		playersJson.add(playerData);
 	    }
 	}
 	stageJson.put("players", playersJson);
 	return stageJson;
+    }
+    
+    public JSONArray getScore() {
+	JSONArray scores = new JSONArray();
+	scores.add(players[0].getScore());
+	scores.add(players[1].getScore());
+	return scores;
     }
 }

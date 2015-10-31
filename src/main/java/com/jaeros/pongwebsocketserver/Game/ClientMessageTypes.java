@@ -7,5 +7,6 @@ package com.jaeros.pongwebsocketserver.Game;
  */
 public enum ClientMessageTypes {
     JOIN_GAME,
+    ADD_AI,
     PLAYER_INPUT
 }

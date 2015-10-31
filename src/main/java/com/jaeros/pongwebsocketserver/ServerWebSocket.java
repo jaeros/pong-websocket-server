@@ -1,6 +1,7 @@
 
 package com.jaeros.pongwebsocketserver;
 
+import com.jaeros.pongwebsocketserver.Game.ClientMessageTypes;
 import com.jaeros.pongwebsocketserver.Game.GameModel;
 import com.jaeros.pongwebsocketserver.Game.GameState;
 import com.jaeros.pongwebsocketserver.Game.Player;
@@ -50,18 +51,40 @@ public class ServerWebSocket implements Observer {
 	Object obj = JSONValue.parse(message);
 	JSONObject jsonMessage = (JSONObject)obj;
 	
-	String messageType = (String)jsonMessage.get("messageType");
+	ClientMessageTypes messageType;
+	try {
+	    messageType = ClientMessageTypes.valueOf((String)jsonMessage.get("messageType"));
+	} catch(IllegalArgumentException ex) {
+	    messageType = null;
+	}
 	switch(messageType) {
-	    case "JOIN_GAME":
+	    case JOIN_GAME:
+		// Join availabe game
 		player = storage.joinGame();
 		System.out.println("Joined game " + player.getGame().getId());
+		// Subscribe to game changes
 		player.getGame().addObserver(this);
+		// Send current state to client
 		sendStateUpdate(session, player.getGame().getState());
 		break;
-	    case "PLAYER_INPUT":
+	    case PLAYER_INPUT:
 		System.out.println("Got player input! " + message);
 		handleInput((JSONObject)jsonMessage.get("data"));
 		break;
+	    case ADD_AI:
+		System.out.println("Request to add AI player");
+		
+		if(player.getGame().canJoin()) {
+		    // Add a player to the game
+		    Player tempPlayer = storage.joinGame();
+		    // Set the player to AI mode (paddle stays with ball)
+		    tempPlayer.setAI();
+		} else {
+		    // Game can't be joined
+		    System.out.println("Game full");
+		}
+		break;
+	    default:
 	}
     }
     
@@ -105,6 +128,8 @@ public class ServerWebSocket implements Observer {
 	JSONObject data = new JSONObject();
 	data.put("messageType", ServerMessageTypes.CHANGE_STATE.toString());
 	data.put("data", state.toString());
+	if (state == GameState.SHOW_SCORE || state == GameState.GAME_OVER)
+	    data.put("score", player.getGame().getScore());
 	session.getRemote().sendString(data.toJSONString());
     }
     
