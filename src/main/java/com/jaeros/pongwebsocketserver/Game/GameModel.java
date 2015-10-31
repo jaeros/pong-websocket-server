@@ -118,7 +118,7 @@ public class GameModel extends Observable implements JsonSerializable {
 		break;
 	    case SHOW_SCORE:
 		secondsInCountdown = SCORE_TIME / 30;
-		progress = secondsInCountdown - ((double)elapsed / (double)START_TIME) * secondsInCountdown;
+		progress = secondsInCountdown - ((double)elapsed / (double)SCORE_TIME) * secondsInCountdown;
 		break;
 	    default:
 		System.out.println("Bad state in getCountdown(): " + state.toString());

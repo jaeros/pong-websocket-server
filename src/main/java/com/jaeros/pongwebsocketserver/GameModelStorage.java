@@ -13,7 +13,7 @@ import org.json.simple.JSONObject;
  *
  * @author Jeff
  */
-public class GameModelStorage extends Observable implements Runnable, JsonSerializable {
+public class GameModelStorage implements Runnable, JsonSerializable {
 
     int count;
     ScheduledExecutorService executorService;
@@ -78,8 +78,6 @@ public class GameModelStorage extends Observable implements Runnable, JsonSerial
 		games[i].tick();
 	    }
 	}
-	setChanged();
-	notifyObservers();
     }
     
     public GameModel getGame(int gameIndex) {
